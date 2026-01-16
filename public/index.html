@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSON → HL7 Drag & Drop Mapper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>JSON → HL7 Drag & Drop Mapper</h2>
+
+<div class="container">
+
+    <div class="panel">
+        <h3>Input JSON</h3>
+        <textarea id="jsonInput">
+{
+  "patient": {
+    "id": "12345",
+    "firstName": "John",
+    "lastName": "Doe",
+    "dob": "19900101",
+    "gender": "M"
+  }
+}
+        </textarea>
+        <button onclick="loadJson()">Load JSON</button>
+
+        <ul id="jsonFields"></ul>
+    </div>
+
+    <div class="panel">
+        <h3>HL7 Fields</h3>
+        <ul>
+            <li class="hl7" data-field="3">PID-3 Patient ID</li>
+
+            <li class="hl7" data-field="5" data-component="1">
+                PID-5.1 Last Name
+            </li>
+            <li class="hl7" data-field="5" data-component="2">
+                PID-5.2 First Name
+            </li>
+
+            <li class="hl7" data-field="7">PID-7 DOB</li>
+            <li class="hl7" data-field="8">PID-8 Gender</li>
+        </ul>
+    </div>
+
+</div>
+
+<button onclick="generateHL7()">Generate HL7</button>
+
+<pre id="output"></pre>
+
+<script src="app.js"></script>
+</body>
+</html>
