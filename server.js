@@ -179,9 +179,6 @@ app.post("/generate-hl7", (req, res) => {
     const segmentOrder = [];
 
     mappings.forEach(m => {
-        const value = getValue(inputJson, m.jsonPath);
-        if (value === undefined || value === null || value === "") return;
-
         const segment = (m.segment || "PID").toUpperCase();
         if (segment === "MSH") return;
 
@@ -191,6 +188,20 @@ app.post("/generate-hl7", (req, res) => {
             segmentFields.set(segment, fields);
             segmentOrder.push(segment);
         }
+
+        let value;
+        if (m.literalValue !== undefined && m.literalValue !== null && m.literalValue !== "") {
+            if (typeof m.literalValue === "object") {
+                value = JSON.stringify(m.literalValue);
+            } else {
+                value = String(m.literalValue);
+            }
+        } else if (m.jsonPath) {
+            value = getValue(inputJson, m.jsonPath);
+        } else if (m.rawValue !== undefined && m.rawValue !== null && m.rawValue !== "") {
+            value = String(m.rawValue);
+        }
+        if (value === undefined || value === null || value === "") return;
 
         const fields = segmentFields.get(segment);
 
