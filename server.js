@@ -3,9 +3,13 @@ const bodyParser = require("body-parser");
 const https = require("https");
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(bodyParser.json());
+app.use((req, res, next) => {
+    res.setHeader("X-Backend-Port", String(PORT));
+    next();
+});
 app.use(express.static("public"));
 
 const segmentListCache = new Map();
@@ -37,25 +41,25 @@ function fetchJson(url, retries = 4) {
                     }
                 },
                 res => {
-                let data = "";
-                res.on("data", chunk => (data += chunk));
-                res.on("end", () => {
-                    if (res.statusCode !== 200) {
-                        if (attemptNumber < retries) {
-                            return setTimeout(() => attempt(attemptNumber + 1), 500);
+                    let data = "";
+                    res.on("data", chunk => (data += chunk));
+                    res.on("end", () => {
+                        if (res.statusCode !== 200) {
+                            if (attemptNumber < retries) {
+                                return setTimeout(() => attempt(attemptNumber + 1), 500);
+                            }
+                            return reject(
+                                new Error(`Failed request (${res.statusCode}): ${url}`)
+                            );
                         }
-                        return reject(
-                            new Error(`Failed request (${res.statusCode}): ${url}`)
-                        );
-                    }
 
-                    try {
-                        resolve(JSON.parse(data));
-                    } catch (err) {
-                        reject(err);
-                    }
+                        try {
+                            resolve(JSON.parse(data));
+                        } catch (err) {
+                            reject(err);
+                        }
+                    });
                 });
-            });
 
             req.on("error", err => {
                 if (attemptNumber < retries) {
@@ -239,6 +243,10 @@ app.post("/generate-hl7", (req, res) => {
     const hl7 = segments.join("\r");
 
     res.json({ hl7 });
+});
+
+app.get("/backend-info", (req, res) => {
+    res.json({ port: PORT });
 });
 
 /* -------------------------

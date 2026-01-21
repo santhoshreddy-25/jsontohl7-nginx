@@ -91,6 +91,24 @@ function extractFields(obj, prefix) {
     }
 }
 
+function showOutputPanel() {
+    const outputPanel = document.getElementById("outputPanel");
+    if (outputPanel) {
+        outputPanel.classList.remove("hidden");
+    }
+}
+
+function hideOutputPanel() {
+    hideOutputPanel();
+}
+
+function setOutputText(text) {
+    const output = document.getElementById("output");
+    if (output) {
+        output.textContent = text;
+    }
+}
+
 /* -------------------------
    RENDER HL7 FIELDS
 -------------------------- */
@@ -269,7 +287,6 @@ async function renderHL7Fields() {
    MAKE HL7 FIELD DROPPABLE
 -------------------------- */
 function makeDroppable(li) {
-
     li.addEventListener("dragover", e => {
         e.preventDefault();
         li.classList.add("dragover");
@@ -476,11 +493,8 @@ function generateHL7() {
         return data;
     })
     .then(data => {
-        document.getElementById("output").textContent = data.hl7;
-        const outputPanel = document.getElementById("outputPanel");
-        if (outputPanel) {
-            outputPanel.classList.remove("hidden");
-        }
+        setOutputText(data.hl7);
+        showOutputPanel();
         const fieldBox = document.querySelector('.hl7-box[data-box="fields"]');
         if (fieldBox) {
             fieldBox.classList.add("collapsed");
@@ -488,18 +502,27 @@ function generateHL7() {
     })
     .catch(err => {
         console.error(err);
-        const outputPanel = document.getElementById("outputPanel");
-        if (outputPanel) {
-            outputPanel.classList.remove("hidden");
-        }
-        document.getElementById("output").textContent = `Error: ${err.message}`;
+        showOutputPanel();
+        setOutputText(`Error: ${err.message}`);
     });
+}
+
+function logBackendPort() {
+    fetch("/backend-info")
+        .then(res => res.json())
+        .then(data => {
+            console.log(`Backend port: ${data.port}`);
+        })
+        .catch(err => {
+            console.error("Backend info error:", err);
+        });
 }
 
 /* -------------------------
    INITIALIZE HL7 UI
 -------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
+    logBackendPort();
     document.addEventListener("dragover", e => {
         dragState.clientX = e.clientX;
         dragState.clientY = e.clientY;
@@ -538,10 +561,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeOutput = document.getElementById("closeOutput");
     if (closeOutput) {
         closeOutput.addEventListener("click", () => {
-            const outputPanel = document.getElementById("outputPanel");
-            if (outputPanel) {
-                outputPanel.classList.add("hidden");
-            }
+            hideOutputPanel();
         });
     }
     const versionSelect = document.getElementById("hl7Version");
@@ -551,11 +571,8 @@ document.addEventListener("DOMContentLoaded", () => {
         currentSegment = null;
         currentFields = [];
         allSegments = [];
-        document.getElementById("output").textContent = "";
-        const outputPanel = document.getElementById("outputPanel");
-        if (outputPanel) {
-            outputPanel.classList.add("hidden");
-        }
+        setOutputText("");
+        hideOutputPanel();
         renderHL7Fields();
     });
 
